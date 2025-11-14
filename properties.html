@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Объекты недвижимости | Fattoria.by</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Основные стили -->
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .properties-container {
+            padding: 40px 0;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #2c3e50;
+        }
+        .property-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            background: white;
+            margin-bottom: 25px;
+        }
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .property-image {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+        .property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .property-card:hover .property-image img {
+            transform: scale(1.05);
+        }
+        .photo-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .property-content {
+            padding: 20px;
+        }
+        .property-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+        .property-address {
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .property-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        .property-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .feature-badge {
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #555;
+        }
+        .property-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .property-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .btn-view-details {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        .btn-view-details:hover {
+            background: #2980b9;
+            color: white;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 60px 0;
+            color: #7f8c8d;
+        }
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+            background: #fdf2f2;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .no-properties {
+            text-align: center;
+            padding: 60px 0;
+            color: #7f8c8d;
+        }
+        .filters-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+    </style>
+    <!-- Header Loader -->
+<script src="/js/header-loader.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<section class="properties-container">
+    <div class="container">
+        <div class="page-title">
+            <h1>🏠 Объекты недвижимости</h1>
+            <p class="lead">Найдите свой идеальный дом среди наших предложений</p>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filters-section">
+            <div class="row">
+                <div class="col-md-3">
+                    <select class="form-select" id="typeFilter">
+                        <option value="">Все типы</option>
+                        <option value="квартира">Квартиры</option>
+                        <option value="дом">Дома</option>
+                        <option value="участок">Участки</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="roomsFilter">
+                        <option value="">Любое кол-во комнат</option>
+                        <option value="1">1 комната</option>
+                        <option value="2">2 комнаты</option>
+                        <option value="3">3 комнаты</option>
+                        <option value="4">4+ комнаты</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" id="districtFilter" placeholder="Район...">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" onclick="loadProperties()">Применить фильтры</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Контейнер для объектов -->
+        <div id="propertiesGrid" class="row">
+            <div class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p class="mt-3">Загружаем объекты недвижимости...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="footer-placeholder"></div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Загрузчик header -->
+<script src="/js/header-loader.js"></script>
+
+<script>
+// Функция для преобразования photos в массив
+function parsePhotos(photos) {
+    if (Array.isArray(photos)) {
+        return photos.filter(photo => photo && photo.trim());
+    }
+    if (typeof photos === 'string') {
+        if (photos.includes('|')) {
+            return photos.split('|').filter(photo => photo && photo.trim());
+        }
+        try {
+            const parsed = JSON.parse(photos);
+            return Array.isArray(parsed) ? parsed.filter(photo => photo && photo.trim()) : [photos];
+        } catch {
+            return photos ? [photos] : [];
+        }
+    }
+    return [];
+}
+
+// Функция для форматирования цены
+function formatPrice(price, currency = 'USD') {
+    if (!price || price === "договорная") return 'Цена по запросу';
+
+    const currencySymbols = {
+        'USD': '$',
+        'EUR': '€',
+        'BYN': 'руб.',
+        'RUB': '₽'
+    };
+
+    const symbol = currencySymbols[currency] || '$';
+    
+    if (typeof price === 'number') {
+        return new Intl.NumberFormat('ru-RU').format(price) + ' ' + symbol;
+    }
+    
+    return price + ' ' + symbol;
+}
+
+// Основная функция загрузки объектов
+async function loadProperties() {
+    try {
+        console.log('🔄 Загружаем объекты...');
+        
+        // Получаем значения фильтров
+        const typeFilter = document.getElementById('typeFilter').value;
+        const roomsFilter = document.getElementById('roomsFilter').value;
+        const districtFilter = document.getElementById('districtFilter').value;
+        
+        // Строим URL с фильтрами
+        let apiUrl = "/api/properties.json?";
+        const params = [];
+        
+        if (typeFilter) params.push(`type=${encodeURIComponent(typeFilter)}`);
+        if (roomsFilter) params.push(`rooms=${encodeURIComponent(roomsFilter)}`);
+        if (districtFilter) params.push(`district=${encodeURIComponent(districtFilter)}`);
+        
+        apiUrl += params.join('&');
+        
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
+        
+        const properties = await response.json();
+
+        console.log("🔍 Properties data:", properties);
+        console.log("🔍 Properties type:", typeof properties);
+        console.log('✅ Загружено объектов:', properties.length);
+        displayProperties(properties);
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки:', error);
+        showError('Ошибка при загрузке объектов: ' + error.message);
+    }
+}
+
+// Функция отображения объектов
+function displayProperties(properties) {
+    const container = document.getElementById('propertiesGrid');
+    
+    if (!properties || properties.length === 0) {
+        container.innerHTML = `
+            <div class="no-properties">
+                <i class="fas fa-home fa-3x mb-3" style="color: #bdc3c7;"></i>
+                <h3>Объекты не найдены</h3>
+                <p>Попробуйте изменить параметры фильтров</p>
+                <button class="btn btn-primary mt-3" onclick="loadProperties()">Показать все объекты</button>
+            </div>
+        `;
+        return;
+    }
+    
+    const propertiesHTML = properties.map(property => {
+        const photos = parsePhotos(property.photos);
+        const mainPhoto = photos.length > 0 ? photos[0] : '/images/placeholder-property.jpg';
+        const photoCount = photos.length;
+        
+        // Формируем описание (обрезаем если слишком длинное)
+        const description = property.description ? 
+            (property.description.length > 100 ? 
+                property.description.substring(0, 100) + '...' : 
+                property.description) : 
+            'Описание отсутствует';
+        
+        return `
+            <div class="col-lg-4 col-md-6">
+                <div class="property-card">
+                    <div class="property-image">
+                        <img src="${mainPhoto}" alt="${property.title}" 
+                             onerror="this.src='/images/placeholder-property.jpg'">
+                        ${photoCount > 1 ? `
+                            <div class="photo-badge">
+                                <i class="fas fa-camera"></i> ${photoCount}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="property-content">
+                        <h3 class="property-title">${property.title || 'Объект недвижимости'}</h3>
+                        <div class="property-address">
+                            <i class="fas fa-map-marker-alt"></i> ${property.address || 'Адрес не указан'}
+                        </div>
+                        
+                        <div class="property-price">
+                            ${property.priceUSD || property.priceBYN || formatPrice(property.price)}
+                        </div>
+                        
+                        <div class="property-features">
+                            ${property.rooms ? `<span class="feature-badge"><i class="fas fa-door-open"></i> ${property.rooms} комн.</span>` : ''}
+                            ${property.area_total ? `<span class="feature-badge"><i class="fas fa-arrows-alt"></i> ${property.area_total} м²</span>` : ''}
+                            ${property.district ? `<span class="feature-badge"><i class="fas fa-building"></i> ${property.district}</span>` : ''}
+                        </div>
+                        
+                        <div class="property-description">
+                            ${description}
+                        </div>
+                        
+                        <div class="property-footer">
+                            <small class="text-muted">
+                                ${property.type || 'Тип не указан'}
+                            </small>
+                            <a href="/object.html?unid=SITEWRNTSN65" class="btn-view-details">
+                                Подробнее <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = propertiesHTML;
+}
+
+// Функция показа ошибки
+function showError(message) {
+    const container = document.getElementById('propertiesGrid');
+    container.innerHTML = `
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+            <h4>Произошла ошибка</h4>
+            <p>${message}</p>
+            <button class="btn btn-primary mt-3" onclick="loadProperties()">
+                <i class="fas fa-redo"></i> Попробовать снова
+            </button>
+        </div>
+    `;
+}
+
+// Загружаем объекты при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadProperties();
+});
+</script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Основные скрипты -->
+<script src="/js/load-components.js"></script>
+<script src="/js/properties.js"></script>
+</body>
+</html>

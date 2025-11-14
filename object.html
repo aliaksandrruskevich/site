@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title id="pageTitle">Объект недвижимости | Fattoria.by</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- AOS CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Основные стили -->
+  <link rel="stylesheet" href="/css/main.css">
+  <!-- Объединенные стили для index -->
+  <link rel="stylesheet" href="/css/index-combined.css">
+  <!-- Yandex Maps API -->
+  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<section class="container py-5">
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Property Gallery -->
+      <div class="property-gallery mb-4" id="propertyGallery">
+        <div class="main-image-container">
+          <img id="mainPropertyImage" src="/images/placeholder-loading.svg" alt="Главное фото" class="img-fluid rounded">
+        </div>
+        <div class="thumbnail-gallery" id="thumbnailGallery">
+          <!-- Thumbnails will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Property Info -->
+      <div class="property-details-card" id="propertyDetails">
+        <h1 id="propertyTitle">Загрузка...</h1>
+        <p class="location" id="propertyLocation">
+          <i class="fas fa-map-marker-alt"></i> Загрузка...
+        </p>
+        <div class="price" id="propertyPrice">Загрузка...</div>
+
+        <div class="features-grid" id="propertyFeatures">
+          <!-- Features will be loaded here -->
+        </div>
+
+        <div class="description-section">
+          <h3>Описание</h3>
+          <div id="propertyDescription">Загрузка...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <!-- Contact Form -->
+      <div class="contact-card">
+        <h4>Заинтересованы в объекте?</h4>
+        <form id="contactForm" class="contact-form">
+          <div class="mb-3">
+            <input type="text" class="form-control" name="name" placeholder="Ваше имя" required>
+          </div>
+          <div class="mb-3">
+            <input type="tel" class="form-control" name="phone" placeholder="Ваш телефон" required>
+          </div>
+          <div class="mb-3">
+            <input type="email" class="form-control" name="email" placeholder="Email (необязательно)">
+          </div>
+          <div class="mb-3">
+            <textarea class="form-control" name="message" rows="3" placeholder="Ваше сообщение"></textarea>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="agreeCheck" required>
+            <label class="form-check-label" for="agreeCheck">
+              Даю согласие на обработку персональных данных
+            </label>
+          </div>
+          <button type="submit" class="btn btn-warning w-100">
+            <i class="fas fa-paper-plane"></i> Отправить запрос
+          </button>
+        </form>
+      </div>
+
+      <!-- Agent Info -->
+      <div class="agent-card" id="agentInfo">
+        <h5>Контактное лицо</h5>
+        <div class="agent-details">
+          <div class="agent-avatar">
+            <i class="fas fa-user-circle fa-3x"></i>
+          </div>
+          <div>
+            <div class="agent-name" id="agentName">Загрузка...</div>
+            <div class="agent-phone" id="agentPhone">Загрузка...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="map-card">
+        <h5>Расположение объекта</h5>
+        <div id="propertyMap" style="height: 250px; width: 100%; border-radius: 8px;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Back to list button -->
+<section class="container pb-5">
+  <div class="text-center">
+    <a href="/properties" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left"></i> Вернуться к списку объектов
+    </a>
+  </div>
+</section>
+
+<div id="footer-placeholder"></div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AOS JS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<!-- Загрузчик header -->
+<script src="/js/header-loader.js"></script>
+<!-- Load Components JS -->
+<script src="/js/load-components.js"></script>
+<!-- Toast JavaScript -->
+<script src="/js/toast.js"></script>
+
+<!-- 🔥 ПЕРВЫМ загружаем JavaScript объекта -->
+<script>
+// 🔥 ФУНКЦИЯ ДЛЯ ПРЕОБРАЗОВАНИЯ PHOTOS В МАССИВ
+function parsePhotos(photos) {
+    console.log("📸 Raw photos data:", photos);
+    
+    if (Array.isArray(photos)) {
+        return photos.filter(photo => photo && photo.trim());
+    }
+    if (typeof photos === 'string') {
+        if (photos.includes('|')) {
+            return photos.split('|').filter(photo => photo && photo.trim());
+        }
+        try {
+            const parsed = JSON.parse(photos);
+            return Array.isArray(parsed) ? parsed.filter(photo => photo && photo.trim()) : [photos];
+        } catch {
+            return photos ? [photos] : [];
+        }
+    }
+    return [];
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Get property ID from URL
+  let propertyUnid = null;
+  
+  const pathMatch = window.location.pathname.match(/\/object\/(.+)$/);
+  if (pathMatch) {
+    propertyUnid = pathMatch[1];
+  } else {
+    const urlParams = new URLSearchParams(window.location.search);
+    propertyUnid = urlParams.get('unid');
+  }
+
+  if (!propertyUnid) {
+    showError('ID объекта не найден');
+    return;
+  }
+
+  loadPropertyDetails(propertyUnid);
+});
+
+async function loadPropertyDetails(unid) {
+  try {
+    console.log('🔍 Загружаем данные объекта:', unid);
+    const response = await fetch(`/api/property-${unid}.json`);
+
+    console.log("🔍 API URL:", `/api/property-${unid}.json`);
+    console.log("🔍 Response ok:", response.ok);
+
+    console.log("🔍 Response status:", response.status);
+    const property = await response.json();
+
+    if (!property) {
+      showError('Объект не найден');
+      return;
+    }
+
+    displayPropertyDetails(property);
+    initPropertyMap(property);
+
+  } catch (error) {
+    console.error('Error loading property:', error);
+    showError('Ошибка загрузки объекта');
+  }
+}
+
+function displayPropertyDetails(property) {
+  console.log("🔍 FULL Property data:", JSON.stringify(property, null, 2));
+  console.log("🔍 Property data from API:", property);
+
+  // Update page title
+  document.title = `${property.title} | Fattoria.by`;
+  document.getElementById('pageTitle').textContent = `${property.title} | Fattoria.by`;
+
+  // Update main info
+  document.getElementById('propertyTitle').textContent = property.title;
+  document.getElementById('propertyLocation').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${property.address || property.location || 'Адрес не указан'}`;
+  
+  // Update price
+  if (property.priceUSD && property.priceUSD !== "договорная") {
+    document.getElementById('propertyPrice').textContent = property.priceUSD;
+  } else if (property.priceBYN && property.priceBYN !== "договорная") {
+    document.getElementById('propertyPrice').textContent = property.priceBYN;
+  } else {
+    document.getElementById('propertyPrice').textContent = formatPrice(property.price, property.currency);
+  }
+
+  // 🔥 ИСПРАВЛЕННАЯ ГАЛЕРЕЯ
+  const photos = parsePhotos(property.images);
+  console.log("📸 Processed photos:", photos);
+  
+  if (photos.length > 0) {
+    document.getElementById('mainPropertyImage').src = photos[0];
+    document.getElementById('mainPropertyImage').alt = property.title;
+
+    const thumbnailGallery = document.getElementById('thumbnailGallery');
+    if (photos.length > 1) {
+      thumbnailGallery.innerHTML = photos.slice(1, 7).map((photo, index) =>
+        `<img src="${photo}" alt="Фото ${index + 2}" data-photo="${photo}" class="thumbnail-img" style="width: 80px; height: 60px; object-fit: cover; cursor: pointer; margin: 5px; border: 2px solid transparent;">
+        `
+      ).join('');
+    } else {
+      thumbnailGallery.innerHTML = '';
+    }
+  } else {
+    // Если фото нет, показываем заглушку
+    document.getElementById('mainPropertyImage').src = '/images/placeholder-loading.svg';
+    document.getElementById('thumbnailGallery').innerHTML = '';
+  }
+  
+  // Update features
+  const featuresContainer = document.getElementById('propertyFeatures');
+  const features = [];
+  
+  if (property.rooms && property.rooms !== "" && property.rooms !== "null") {
+    features.push(`${property.rooms} комн.`);
+  }
+  
+  if (property.area_total && property.area_total !== "" && property.area_total !== "null") {
+    features.push(`${property.area_total} м²`);
+  }
+  
+  if (property.storey && property.storeys) {
+    features.push(`Этаж: ${property.storey}/${property.storeys}`);
+  }
+  
+  if (property.house_type && property.house_type !== "" && property.house_type !== "null") {
+    const houseTypeMap = {
+      "п": "Панельный", "к": "Кирпичный", "м": "Монолитный", 
+      "б": "Блочный", "д": "Деревянный"
+    };
+    features.push(houseTypeMap[property.house_type] || property.house_type);
+  }
+  
+  if (property.building_year && property.building_year !== "" && property.building_year !== "null") {
+    features.push(`${property.building_year} г.`);
+  }
+
+  if (features.length > 0) {
+    featuresContainer.innerHTML = features.map(feature =>
+      `<div class="feature-item">${feature}</div>`
+    ).join('');
+  } else {
+    featuresContainer.innerHTML = '<div class="feature-item">Информация уточняется</div>';
+  }
+
+  // Update description
+  document.getElementById('propertyDescription').textContent = property.description || 'Описание отсутствует';
+
+  // Update agent info
+  document.getElementById('agentName').textContent = property.contact_name || 'Контактное лицо';
+  
+  // Ищем телефон в правильном порядке полей
+  const mainPhone = property.contact_phone_1 || property.contact_phone || property.phone;
+  console.log("📞 Selected phone:", mainPhone);
+  
+  document.getElementById('agentPhone').innerHTML = mainPhone ?
+    `<a href="tel:${mainPhone}" style="color: #007bff; text-decoration: none; font-weight: 500;">
+      <i class="fas fa-phone me-2"></i>${formatPhoneNumber(mainPhone)}
+    </a>` :
+    '<span class="text-muted">Телефон не указан</span>';
+}
+
+function formatPrice(price, currency = 'USD') {
+  if (!price || price === "договорная") return 'Цена по запросу';
+
+  const currencySymbols = {
+    'USD': '$',
+    'EUR': '€',
+    'BYN': 'руб.',
+    'RUB': '₽'
+  };
+
+  const symbol = currencySymbols[currency] || '$';
+  
+  if (typeof price === 'number') {
+    return new Intl.NumberFormat('ru-RU').format(price) + ' ' + symbol;
+  }
+  
+  return price + ' ' + symbol;
+}
+
+function formatPhoneNumber(phone) {
+  if (!phone) return '';
+  
+  // Очищаем от всего кроме цифр и дефисов
+  const cleaned = phone.replace(/[^\d-]/g, "");
+  
+  // Белорусские номера (полные)
+  if (cleaned.length === 12 && cleaned.startsWith('375')) {
+    return `+${cleaned.slice(0,3)} (${cleaned.slice(3,5)}) ${cleaned.slice(5,8)}-${cleaned.slice(8,10)}-${cleaned.slice(10)}`;
+  }
+  
+  // Российские номера
+  if (cleaned.length === 11 && cleaned.startsWith('7')) {
+    return `+${cleaned.slice(0,1)} (${cleaned.slice(1,4)}) ${cleaned.slice(4,7)}-${cleaned.slice(7,9)}-${cleaned.slice(9)}`;
+  }
+  
+  // Если номер короткий (111-90-90), добавляем код оператора A1 (29)
+  if (cleaned.length <= 7 || phone.match(/^\d{3}-\d{2}-\d{2}$/)) {
+    return `+375 (29) ${phone}`;
+  }
+  
+  // Если номер в формате 8029...
+  if (cleaned.length === 11 && cleaned.startsWith('8029')) {
+    return `+375 (29) ${cleaned.slice(3,6)}-${cleaned.slice(6,8)}-${cleaned.slice(8)}`;
+  }
+  
+  // Если не удалось отформатировать, возвращаем как есть
+  return phone;
+}
+
+function changeMainImage(src) {
+  document.getElementById('mainPropertyImage').src = src;
+
+  document.querySelectorAll('.thumbnail-gallery img').forEach(img => {
+    img.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+function initPropertyMap(property) {
+  if (typeof ymaps === 'undefined') return;
+
+  ymaps.ready(() => {
+    const mapContainer = document.getElementById('propertyMap');
+    if (!mapContainer) return;
+
+    let coords = [53.9045, 27.5615]; // Default to Minsk
+
+    if (property.lat && property.lng) {
+      coords = [property.lat, property.lng];
+    } else {
+      ymaps.geocode(property.address || property.location || 'Минск').then((res) => {
+        const firstGeoObject = res.geoObjects.get(0);
+        if (firstGeoObject) {
+          coords = firstGeoObject.geometry.getCoordinates();
+          updateMap(coords);
+        }
+      });
+    }
+
+    updateMap(coords);
+  });
+
+  function updateMap(coords) {
+    const map = new ymaps.Map('propertyMap', {
+      center: coords,
+      zoom: 15,
+      controls: ['zoomControl']
+    });
+
+    const placemark = new ymaps.Placemark(coords, {
+      hintContent: property.title,
+      balloonContent: `${property.title}<br>${property.address || property.location}`
+    });
+
+    map.geoObjects.add(placemark);
+  }
+}
+
+function showError(message) {
+  const container = document.querySelector('.container');
+  container.innerHTML = `
+    <div class="alert alert-danger text-center" role="alert">
+      <h4 class="alert-heading">Ошибка</h4>
+      <p>${message}</p>
+      <a href="/properties" class="btn btn-primary">Вернуться к списку</a>
+    </div>
+  `;
+}
+
+// Добавляем обработчики для миниатюр
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('thumbnail-img')) {
+    changeMainImage(e.target.dataset.photo);
+  }
+});
+</script>
+
+<!-- 🔥 ПОСЛЕДНИМ загружаем обработчик форм -->
+<script src="/js/forms-handler.js"></script>
+
+<style>
+.property-gallery {
+  margin-bottom: 2rem;
+}
+
+.main-image-container {
+  margin-bottom: 1rem;
+}
+
+.main-image-container img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.thumbnail-gallery {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.thumbnail-gallery img {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.thumbnail-gallery img.active,
+.thumbnail-gallery img:hover {
+  opacity: 1;
+}
+
+.property-details-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.property-details-card h1 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.location {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.price {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ffc107;
+  margin-bottom: 1.5rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.feature-item {
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.description-section {
+  margin-top: 2rem;
+}
+
+.description-section h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.contact-card,
+.agent-card,
+.map-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.agent-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.agent-avatar {
+  color: #ffc107;
+}
+
+.agent-name {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+}
+
+.agent-phone a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.agent-phone a:hover {
+  text-decoration: underline;
+}
+
+.map-card #propertyMap {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .property-gallery {
+    margin-bottom: 1rem;
+  }
+
+  .main-image-container img {
+    height: 250px;
+  }
+
+  .property-details-card {
+    padding: 1rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .price {
+    font-size: 1.5rem;
+  }
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!-- Контейнер для уведомлений -->
+<div class="toast-container"></div>
+
+<!-- Модальное окно для тест-драйва -->
+<script>
+document.getElementById('testDriveForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    console.log('📧 ОТПРАВКА ФОРМЫ testDriveForm!');
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    data.source = 'Модальное окно "Заказать звонок"';
+    
+    console.log('📤 Данные:', data);
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Отправка...';
+        submitBtn.disabled = true;
+        
+        fetch('/api/submit-form', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('✅ Успех:', result);
+            alert('Спасибо! Мы свяжемся с вами.');
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('testDriveModal')).hide();
+        })
+        .catch(error => {
+            console.error('❌ Ошибка:', error);
+            alert('Ошибка отправки. Попробуйте еще раз.');
+        })
+        .finally(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    }
+});
+</script>
+<div class="modal fade test-drive-modal" id="testDriveModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="test-drive-header">
+        <h3 class="modal-title">Тест-драйв услуг агентства</h3>
+        <p>Попробуйте наши услуги по продаже квартиры в течение 20 дней без риска</p>
+      </div>
+      <div class="test-drive-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h4>Что входит в тест-драйв:</h4>
+            <div class="benefit-item">
+              <div class="benefit-icon"><i class="fas fa-home"></i></div>
+              <div>Бесплатная оценка вашей недвижимости</div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon"><i class="fas fa-camera"></i></div>
+              <div>Профессиональная фотосъемка объекта</div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon"><i class="fas fa-chart-line"></i></div>
+              <div>Размещение на 10+ рекламных площадках</div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon"><i class="fas fa-users"></i></div>
+              <div>Персональный менеджер на весь период</div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon"><i class="fas fa-handshake"></i></div>
+              <div>Организация показов и переговоров</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h4>Оставьте заявку</h4>
+            <p>Наш агент свяжется с вами в ближайшее время</p>
+            <form id="testDriveForm">
+              <div class="mb-3">
+                <input type="text" class="form-control" name="name" placeholder="Ваше имя" required>
+              </div>
+              <div class="mb-3">
+                <input type="tel" class="form-control" name="phone" placeholder="Ваш телефон" required>
+              </div>
+              <div class="mb-3">
+                <input type="text" class="form-control" name="address" placeholder="Адрес объекта">
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="agreeCheck" required>
+                <label class="form-check-label" for="agreeCheck">
+                  Даю согласие на обработку персональных данных и согласен с условиями тест-драйва
+                </label>
+              </div>
+              <button type="submit" class="btn btn-warning w-100">Оставить заявку</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для "Почему нам доверяют" -->
+<div class="modal fade" id="trustModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="trustModalTitle">Почему нам доверяют</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="trustModalContent">
+          <!-- Контент будет заполняться динамически -->
+        </div>
+        <hr>
+        <h6>Оставьте номер телефона, мы вам перезвоним</h6>
+        <form id="trustCallbackForm">
+          <div class="mb-3">
+            <input type="text" class="form-control" name="name" placeholder="Ваше имя">
+          </div>
+          <div class="mb-3">
+            <input type="tel" class="form-control" name="phone" placeholder="Ваш телефон" required>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="agreeTrust" required>
+            <label class="form-check-label small" for="agreeTrust">
+              Соглашаюсь с обработкой персональных данных
+            </label>
+          </div>
+          <button type="submit" class="btn btn-warning w-100">Перезвоните мне</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Навигация -->
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container">
+    <a class="navbar-brand text-white" href="/">Fattoria.by</a>
+    <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Недвижимость
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/country-properties">Загородная недвижимость</a></li>
+            <li><a class="dropdown-item" href="/properties">Наши объекты</a></li>
+            <li><a class="dropdown-item" href="/commercial-properties">Коммерческая недвижимость</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="/new-buildings">Новостройки</a></li>
+        <li class="nav-item"><a class="nav-link" href="/blog-stub">Блог</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Юридическая
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/information">Информация</a></li>
+            <li><a class="dropdown-item" href="/about">О компании</a></li>
+            <li><a class="dropdown-item" href="/staff">Сотрудники</a></li>
+            <li><a class="dropdown-item" href="/tariff-grid">Тарифная сетка</a></li>
+            <li><a class="dropdown-item" href="/mortgage-calculator">Калькулятор ипотеки</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Контакты</a></li>
+      </ul>
+      <div class="navbar-phone d-flex align-items-center">
+        <a href="tel:+375447025267">+375 (44) 702-52-67</a>
+        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#testDriveModal">Заказать звонок</button>
+        <button id="darkModeToggle" class="btn btn-outline-light btn-sm ms-2" title="Переключить тему" aria-label="Переключить тему">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+          <span class="visually-hidden">Переключить тему</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+
+<script src="/js/header-forms.js"></script>
+<script src="/js/debug-forms.js"></script>
+<script src="/js/check-dynamic-forms.js"></script>
+<script src="/js/modal-forms.js"></script>
+<script src="/js/fattoria-forms.js?v=3"></script>

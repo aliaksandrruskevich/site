@@ -1,0 +1,28 @@
+{
+  "name": "fattoria-website",
+  "version": "1.0.0",
+  "description": "Fattoria.by Real Estate Website",
+  "main": "ultra-server.js",
+  "scripts": {
+    "start": "node ultra-server.js",
+    "dev": "node ultra-server.js",
+    "build": "echo 'No build step required'",
+    "deploy": "npm install && npm start"
+  },
+  "dependencies": {
+    "mysql2": "^3.6.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "real-estate",
+    "website",
+    "nodejs",
+    "express",
+    "mysql"
+  ],
+  "author": "Fattoria.by",
+  "license": "ISC"
+}
