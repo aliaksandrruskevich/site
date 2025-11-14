@@ -4,7 +4,7 @@
 # Usage: ./deploy.sh [environment]
 
 ENVIRONMENT=${1:-production}
-PROJECT_DIR="/home/fattoria/fattoria.by"
+PROJECT_DIR="/home/fattoriaby"
 BACKUP_DIR="/var/backups/fattoria"
 
 echo "🚀 Starting deployment to $ENVIRONMENT environment..."

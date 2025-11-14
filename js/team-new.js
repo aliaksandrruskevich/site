@@ -34,7 +34,7 @@ function getStaticTeamData() {
         {
             name: "Александр Рускевич",
             position: "Агент по недвижимости",
-            photo: "фото/сотР1.jpg",
+            photo: "images/sotR1.jpg",
             rating: "4.66",
             reviews: "6",
             experience: "2 года",
@@ -49,7 +49,7 @@ function getStaticTeamData() {
         {
             name: "Инна Баронова",
             position: "Агент по недвижимости",
-            photo: "фото/сотИн1.jpg",
+            photo: "images/sotIn1.jpg",
             rating: "5",
             reviews: "22",
             experience: "5 лет",
@@ -64,7 +64,7 @@ function getStaticTeamData() {
         {
             name: "Татьяна Юшко",
             position: "Риэлтер",
-            photo: "фото/сотЮ1.jpg",
+            photo: "images/sotYu1.jpg",
             rating: "5",
             reviews: "10",
             experience: "4 года",
@@ -79,7 +79,7 @@ function getStaticTeamData() {
         {
             name: "Федорчук Светлана Анатольевна",
             position: "Риелтор",
-            photo: "фото/федор1.jpg",
+            photo: "images/fedor1.jpg",
             rating: "4.9",
             reviews: "22",
             experience: "6 лет",

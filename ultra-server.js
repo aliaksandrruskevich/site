@@ -4,7 +4,7 @@ const path = require('path');
 const { getProperties, getPropertyByUnid } = require('./db-mysql-simple');
 const { handleFormSubmission } = require('./bitrix-simple');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // 🔥 КЭШ В ПАМЯТИ
 const cache = {
@@ -415,8 +415,8 @@ async function serveStaticFile(req, res) {
     }
 }
 
-server.listen(PORT, () => {
-    console.log(`🚀 ULTRA-LIGHT Server WITH CACHE running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 ULTRA-LIGHT Server WITH CACHE running on http://0.0.0.0:${PORT}`);
     console.log('✅ MySQL connected, ALL routes configured');
     console.log('🔥 API and Static files CACHING ENABLED!');
     console.log('📧 Google Sheets + Gmail forms integration ENABLED!');

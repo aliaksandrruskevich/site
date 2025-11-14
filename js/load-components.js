@@ -1,52 +1,69 @@
 // Динамическая подгрузка навигации и других компонентов
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('🔧 Начинаем загрузку компонентов');
+
   // Подгрузка навигации из includes/header.html
   fetch('/includes/header.html')
     .then(response => {
+      console.log('📡 Ответ навигации:', response.status);
       if (!response.ok) {
-        throw new Error('Ошибка загрузки навигации');
+        throw new Error('Ошибка загрузки навигации: ' + response.status);
       }
       return response.text();
     })
     .then(html => {
+      console.log('✅ Навигация загружена, длина:', html.length);
       // Вставляем навигацию в элемент с id="header-placeholder"
       const headerPlaceholder = document.getElementById('header-placeholder');
       if (headerPlaceholder) {
         headerPlaceholder.innerHTML = html;
+        console.log('📝 Навигация вставлена');
         // Инициализируем обработчики форм после загрузки хедера
         // initializeFormHandlers();
 
+      } else {
+        console.error('❌ header-placeholder не найден');
       }
     })
     .catch(error => {
-      console.error('Ошибка при загрузке навигации:', error);
+      console.error('❌ Ошибка при загрузке навигации:', error);
     });
 
   // Подгрузка футера из includes/footer.html
   fetch('/includes/footer.html')
     .then(response => {
+      console.log('📡 Ответ футера:', response.status);
       if (!response.ok) {
-        throw new Error('Ошибка загрузки футера');
+        throw new Error('Ошибка загрузки футера: ' + response.status);
       }
       return response.text();
     })
     .then(html => {
+      console.log('✅ Футер загружен, длина:', html.length);
       // Вставляем футер в элемент с id="footer-placeholder"
       const footerPlaceholder = document.getElementById('footer-placeholder');
       if (footerPlaceholder) {
         footerPlaceholder.innerHTML = html;
+        console.log('📝 Футер вставлен');
+
         // Инициализируем AOS после загрузки футера
         if (typeof AOS !== 'undefined') {
           AOS.init({ duration: 1000, once: true });
         }
+
         // Инициализируем обработчики форм после загрузки футера
-        // Формы уже инициализированы в initializeFormHandlers()
+        initializeFormHandlers();
+
         // Инициализируем обработчики модальных окон
         initializeModalHandlers();
+
+        console.log('🎯 Формы футера должны быть инициализированы');
+      } else {
+        console.error('❌ footer-placeholder не найден');
       }
     })
     .catch(error => {
-      console.error('Ошибка при загрузке футера:', error);
+      console.error('❌ Ошибка при загрузке футера:', error);
     });
 });
 
